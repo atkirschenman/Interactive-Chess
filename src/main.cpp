@@ -166,55 +166,64 @@ void PollForEvent(void *pvParameters)
           quadrant[3]=mcp[3].readGPIOAB();
           pieceDetector= (uint64_t)(((uint64_t)quadrant[0])<< 48 | ((uint64_t)quadrant[1] << 32) | ((uint64_t)quadrant[2] << 16) | ((uint64_t)quadrant[3])); 
           detectorCheck=pieceDetector;
-    for(;;) {    
+    for(;;) 
+    {    
          
-          quadrant[0]=mcp[0].readGPIOAB();
-          quadrant[1]=mcp[1].readGPIOAB();
-          quadrant[2]=mcp[2].readGPIOAB();
-          quadrant[3]=mcp[3].readGPIOAB();
+      quadrant[0]=mcp[0].readGPIOAB();
+      quadrant[1]=mcp[1].readGPIOAB();
+      quadrant[2]=mcp[2].readGPIOAB();
+      quadrant[3]=mcp[3].readGPIOAB();
 
         //Serial.print(quadrant[0],BIN);Serial.print("\t");Serial.print(quadrant[1],BIN);Serial.print("\t");Serial.print(quadrant[2],BIN);Serial.print("\t");Serial.println(quadrant[3],BIN);
-          pieceDetector=0;
-          pieceDetector= (uint64_t)(((uint64_t)quadrant[0])<< 48 | ((uint64_t)quadrant[1] << 32) | ((uint64_t)quadrant[2] << 16) | ((uint64_t)quadrant[3])); 
+      pieceDetector=0;
+      pieceDetector = (uint64_t)(((uint64_t)quadrant[0])<< 48 | ((uint64_t)quadrant[1] << 32) | ((uint64_t)quadrant[2] << 16) | ((uint64_t)quadrant[3])); 
           //piecenum,x,y,
           //2,4,5
           //'c' for clearboard
-          if (Serial.available() > 0) {
+      if (Serial.available() > 0) 
+      {
           // read the incoming byte:
-            uint8_t vsize=Serial.available();
-            Serial.println(vsize);
-            char inArray[vsize];
-            int value=0, value2=0, piecenumber=0;
-            for (int i=0;i<vsize; i++){  
-              //inArray[vsize-i] = Serial.read();
-              inArray[i] = Serial.read();
+          uint8_t vsize=Serial.available();
+          Serial.println(vsize);
+          char inArray[vsize];
+          int value=0, value2=0, piecenumber=0;
+          for (int i=0;i<vsize; i++)
+          {  
+            
+            inArray[i] = Serial.read();
               
-            }
-              for(int i=0; i<vsize; i++){Serial.print(i); Serial.print(": "); Serial.println(inArray[i]);}
-            if (inArray[0]=='c') resetBoard(color1,color2);
-            else{
-              for (int i=0;i<vsize-2; i++){ 
-              if (inArray[i]==','){value++; value2=0; }
-              else {
-                switch(value){
-                  case 0://piecenumber
-                    if (value2==1 || inArray[1]==',') { piecenumber+= inArray[i]-48; Serial.print("i: ");Serial.print(i);Serial.print(" ");Serial.print("piecenumber: ");Serial.println(piecenumber);}
-                    else {piecenumber=(inArray[i]-48)*10;value2++;Serial.print("piecenumber: ");Serial.println(piecenumber);}
-                    break;
-                  case 1://xcoor
-                    if (value2==0) {piece[piecenumber].x=inArray[i]-48;Serial.print("i: ");Serial.print(i);Serial.print(" ");Serial.print("x: ");Serial.println(inArray[i]);}
-                  break;
-                  case 2://ycoor
-                    if (value2==0) {piece[piecenumber].y=inArray[i]-48;Serial.print("i: ");Serial.print(i);Serial.print(" ");Serial.print("y: ");Serial.println(inArray[i]);}
-                  break;
-                }
-              }
-              }
-              Serial.print("piecenumber: ");  Serial.println(piecenumber);
-              PieceToActive(&piece[piecenumber]);
-              LedToActive(&piece[piecenumber]);
-            }
           }
+            for(int i=0; i<vsize; i++)
+              {Serial.print(i); Serial.print(": "); Serial.println(inArray[i]);}
+            if (inArray[0]=='c') 
+              resetBoard(color1,color2);
+            else
+            {
+                for (int i=0;i<vsize-2; i++)
+                { 
+                  if (inArray[i]==','){value++; value2=0; }
+                  else 
+                  {
+                    switch(value)
+                    {
+                      case 0://piecenumber
+                        if (value2==1 || inArray[1]==',') {piecenumber+= inArray[i]-48; Serial.print("i: ");Serial.print(i);Serial.print(" ");Serial.print("piecenumber: ");Serial.println(piecenumber);}
+                        else {piecenumber=(inArray[i]-48)*10;value2++;Serial.print("piecenumber: ");Serial.println(piecenumber);}
+                        break;
+                      case 1://xcoor
+                        if (value2==0) {piece[piecenumber].x=inArray[i]-48;Serial.print("i: ");Serial.print(i);Serial.print(" ");Serial.print("x: ");Serial.println(inArray[i]);}
+                        break;
+                      case 2://ycoor
+                        if (value2==0) {piece[piecenumber].y=inArray[i]-48;Serial.print("i: ");Serial.print(i);Serial.print(" ");Serial.print("y: ");Serial.println(inArray[i]);}
+                        break;
+                    }
+                  }
+                }
+                  Serial.print("piecenumber: ");  Serial.println(piecenumber);
+                  PieceToActive(&piece[piecenumber]);
+                  LedToActive(&piece[piecenumber]);
+            }
+        }
           if (errorStat==1){
             if (pieceDetector==detectorCheck) errorStat=0;
           }
@@ -240,7 +249,7 @@ void PollForEvent(void *pvParameters)
           }
      //Serial.print(pieceFlag); Serial.print("\t");Serial.print(errorStat); Serial.print("\t"); Serial.println(pieceFlagged);
            vTaskDelay(200 / portTICK_PERIOD_MS);               
-           }
+    }
 
 }
 
