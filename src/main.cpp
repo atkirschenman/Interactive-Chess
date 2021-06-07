@@ -7,8 +7,8 @@
 #include <Adafruit_BusIO_Register.h>
 #include <Update.h>
 #include <WiFi.h>
-
-
+#include <HTTPClient.h>
+#include <EEPROM.h>
 
 
 WiFiClient client;
@@ -16,6 +16,9 @@ const char* SSID = "Kirschenman_2.4";
 const char* PSWD = "Buddydog17";
 long contentLength = 0;
 bool isValidContentType = false;
+String line;
+uint16_t currentVersion;
+
 
 Adafruit_MCP23017 mcp[4];
 //*****************************************************//
@@ -32,21 +35,27 @@ struct chessPiece
   bool onBoard;
 };
 
+//*****************************************************//
+//              AUTO UPDATE STUFF                      //
+//*****************************************************//
 String host = "chessprogram.s3-us-west-2.amazonaws.com"; // Host => bucket-name.s3.region.amazonaws.com
 int port = 80; // Non https. For HTTPS 443. As of today, HTTPS doesn't work.
 String bin = "/AWS_S3_OTA_Update.ino.nodemcu-32s.bin"; // bin file name with a slash in front.
+String version = "/version.txt"; // bin file name with a slash in front.
 
 
-
+// Utility to extract header value from headers
 String getHeaderValue(String header, String headerName) {
   return header.substring(strlen(headerName.c_str()));
 }
-void execOTA();
 
+void execOTA();
 
 struct chessPiece piece[32];
 void PieceToActive(chessPiece *piecePtr);
 void LedToActive(chessPiece *piecePtr);
+
+
 //*****************************************************//
 //                NEOPIXEL STUFF                       //
 //*****************************************************//
@@ -78,10 +87,79 @@ void setup()
 {
      Serial.begin(115200);
      delay(1000);  
+/////////////////////*****************************************************//
+/////////////////////                            Check for Updates        //
+/////////////////////*****************************************************//
+if (!EEPROM.begin(1000)) {
+    Serial.println("Failed to initialise EEPROM");
+    Serial.println("Restarting...");
+    delay(1000);
+    ESP.restart();
+  }
+  currentVersion = EEPROM.readShort(0);
+
+
+ Serial.println("Connecting to " + String(SSID));
+  // Connect to provided SSID and PSWD
+  WiFi.begin(SSID, PSWD);
+  // Wait for connection to establish
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print("."); // Keep the serial monitor lit!
+    delay(500);
+  }
+
+  // Connection Succeed
+  Serial.println("");
+  Serial.println("Connected to " + String(SSID));
+ Serial.println("Connecting to: " + String(host));
+  // Connect to S3
+  if (client.connect(host.c_str(), port)) {
+    // Connection Succeed.
+    // Fecthing the bin
+    Serial.println("Fetching Bin: " + String(version));
+
+    // Get the contents of the bin file
+    client.print(String("GET ") + version + " HTTP/1.1\r\n" +
+                 "Host: " + host + "\r\n" +
+                 "Cache-Control: no-cache\r\n" +
+                 "Connection: close\r\n\r\n");
+
+    unsigned long timeout = millis();
+    while (client.available() == 0) {
+      if (millis() - timeout > 5000) {
+        Serial.println("Client Timeout !");
+        client.stop();
+        return;
+      }
+    }
+    
+     while (client.available()) {
+      // read line till /n
+      line = client.readStringUntil('\n');
+      
+     }
+     int uVersion=line.toInt();
+      Serial.println(uVersion);
+    if (uVersion!=currentVersion)
+    {
+      currentVersion=uVersion;
+      EEPROM.writeShort(0, currentVersion);
+      EEPROM.commit();
+      void execOTA();
+    }
+  }
+      
+    // Once the response is
+
+
+
+
+
+
+
+
 
  for (int i=0;i<32;i++) {piece[i].pieceNumber=i;}
-
-
 for (int i=0;i<=7;i++) {piece[i].pieceType=0;}//white pawn
 for (int i=16;i<=23;i++) {piece[i].pieceType=6;}//black pawn
 for (int i=8;i<=9;i++) {piece[i].pieceType=1;}//white rook
@@ -96,9 +174,6 @@ piece[14].pieceType=4;//white queen
 piece[30].pieceType=4;//black queen
 Serial.print(piece[30].pieceType);Serial.print("\t"); Serial.print(piece[31].pieceType);Serial.print("\t");Serial.print(piece[10].pieceType);Serial.print("\t"); Serial.println(piece[9].pieceType);
 
- //for 
-
-  
 //*****************************************************//
 //                  CHESS SETUP                        //
 //*****************************************************//
@@ -121,8 +196,6 @@ Serial.print(piece[30].pieceType);Serial.print("\t"); Serial.print(piece[31].pie
   matrix.setBrightness(40);
   matrix.drawPixel(0,0,0x4EE2);
   matrix.show();
-
-
 
 //*****************************************************//
 //                  TASK SETUP                         //
@@ -418,8 +491,6 @@ void LedToActive(struct chessPiece *piecePtr){
 }
 
 
-
-
 // OTA Logic 
 void execOTA() {
   Serial.println("Connecting to: " + String(host));
@@ -564,3 +635,6 @@ void execOTA() {
     client.flush();
   }
 }
+
+
+
