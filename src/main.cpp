@@ -40,7 +40,7 @@ struct chessPiece
 //*****************************************************//
 String host = "chessprogram.s3-us-west-2.amazonaws.com"; // Host => bucket-name.s3.region.amazonaws.com
 int port = 80; // Non https. For HTTPS 443. As of today, HTTPS doesn't work.
-String bin = "/AWS_S3_OTA_Update.ino.nodemcu-32s.bin"; // bin file name with a slash in front.
+String bin = "/firmware.bin"; // bin file name with a slash in front.
 String version = "/version.txt"; // bin file name with a slash in front.
 
 
@@ -149,7 +149,7 @@ if (!EEPROM.begin(1000)) {
       currentVersion=uVersion;
       EEPROM.writeShort(0, currentVersion);
       EEPROM.commit();
-      void execOTA();
+      execOTA();
     }
   }
       
