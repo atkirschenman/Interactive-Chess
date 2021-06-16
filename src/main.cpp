@@ -9,7 +9,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <EEPROM.h>
-
+#include <WiFiMulti.h>
 
 WiFiClient client;
 const char* SSID = "Kirschenman_2.4";
@@ -19,7 +19,7 @@ bool isValidContentType = false;
 String line;
 uint16_t currentVersion;
 
-
+WiFiMulti wifiMulti;
 Adafruit_MCP23017 mcp[4];
 //*****************************************************//
 //                  CHESS STUFF                        //
@@ -97,7 +97,8 @@ if (!EEPROM.begin(1000)) {
     ESP.restart();
   }
   currentVersion = EEPROM.readShort(0);
-
+    wifiMulti.addAP("Kirschenman_2.4", "Buddydog17");
+    wifiMulti.addAP("CenturyLink4841", "36e3b7u8eawa3y");
 
  Serial.println("Connecting to " + String(SSID));
   // Connect to provided SSID and PSWD
@@ -139,9 +140,12 @@ if (!EEPROM.begin(1000)) {
       
      }
      int uVersion=line.toInt();
-      Serial.println(uVersion);
+     Serial.print("Cloud Version: "); Serial.println(uVersion);
+     Serial.print("current Version: "); Serial.println(currentVersion);
     if (uVersion!=currentVersion)
     {
+
+      Serial.print("Will Update");
       currentVersion=uVersion;
       EEPROM.writeShort(0, currentVersion);
       EEPROM.commit();
