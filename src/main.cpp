@@ -100,9 +100,17 @@ if (!EEPROM.begin(1000)) {
     wifiMulti.addAP("Kirschenman_2.4", "Buddydog17");
     wifiMulti.addAP("CenturyLink4841", "36e3b7u8eawa3y");
 
- Serial.println("Connecting to " + String(SSID));
+
+
+    if(wifiMulti.run() == WL_CONNECTED) {
+        Serial.println("");
+        Serial.println("WiFi connected");
+        Serial.println("IP address: ");
+        Serial.println(WiFi.localIP());
+    }
+ //Serial.println("Connecting to " + String(SSID));
   // Connect to provided SSID and PSWD
-  WiFi.begin(SSID, PSWD);
+  //WiFi.begin(SSID, PSWD);
   // Wait for connection to establish
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print("."); // Keep the serial monitor lit!
