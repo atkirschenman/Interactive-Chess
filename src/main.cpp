@@ -10,7 +10,7 @@
 #include <HTTPClient.h>
 #include <EEPROM.h>
 #include <WiFiMulti.h>
-
+HTTPClient http;
 WiFiClient client;
 const char* SSID = "Kirschenman_2.4";
 const char* PSWD = "Buddydog17";
@@ -38,11 +38,17 @@ struct chessPiece
 //*****************************************************//
 //              AUTO UPDATE STUFF                      //
 //*****************************************************//
+//https://drive.google.com/file/d/1Y9pz5a1Zj8dh2pApA8mKN7-bSKYd8zFv/view?usp=sharing
+//https://drive.google.com/file/d/1Y9pz5a1Zj8dh2pApA8mKN7-bSKYd8zFv/view?usp=sharing
+//https://drive.google.com/uc?export=download&id=1Y9pz5a1Zj8dh2pApA8mKN7-bSKYd8zFv
+//String host = "";
 String host = "chessprogram.s3-us-west-2.amazonaws.com"; // Host => bucket-name.s3.region.amazonaws.com
 int port = 80; // Non https. For HTTPS 443. As of today, HTTPS doesn't work.
+//String version ="/uc?export=download&id=1Y9pz5a1Zj8dh2pApA8mKN7-bSKYd8zFv";
 String bin = "/firmware.bin"; // bin file name with a slash in front.
 String version = "/version.txt"; // bin file name with a slash in front.
-
+//String endpoint = "https://docs.google.com/uc?export=download&id=";
+//String key = "1Y9pz5a1Zj8dh2pApA8mKN7-bSKYd8zFv";
 
 // Utility to extract header value from headers
 String getHeaderValue(String header, String headerName) {
@@ -134,6 +140,7 @@ if (!EEPROM.begin(1000)) {
                  "Connection: close\r\n\r\n");
 
     unsigned long timeout = millis();
+    
     while (client.available() == 0) {
       if (millis() - timeout > 5000) {
         Serial.println("Client Timeout !");
@@ -160,6 +167,7 @@ if (!EEPROM.begin(1000)) {
       execOTA();
     }
   }
+  
       
     // Once the response is
 
@@ -505,7 +513,7 @@ void LedToActive(struct chessPiece *piecePtr){
 
 // OTA Logic 
 void execOTA() {
-  Serial.println("Connecting to: " + String(host));
+  //Serial.println("Connecting to: " + String(host));
   // Connect to S3
   if (client.connect(host.c_str(), port)) {
     // Connection Succeed.
